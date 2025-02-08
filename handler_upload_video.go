@@ -72,6 +72,15 @@ func (cfg *apiConfig) handlerUploadVideo(w http.ResponseWriter, r *http.Request)
 		respondWithError(w, http.StatusInternalServerError, "Something went wrong", err)
 		return
 	}
+	processedVideoPath, err := processVideoForFastStart(tmpFile.Name())
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, "Something went wrong", err)
+		return
+	}
+	processedVideoFile, err := os.Open(processedVideoPath)
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, "Could not open processed video", err)
+	}
 	tmpFile.Seek(0, io.SeekStart)
 	folderName, err := getVideoAspectRatio(tmpFile.Name())
 	if err != nil {
@@ -83,7 +92,7 @@ func (cfg *apiConfig) handlerUploadVideo(w http.ResponseWriter, r *http.Request)
 	_, err = cfg.s3Client.PutObject(r.Context(), &s3.PutObjectInput{
 		Bucket:      aws.String(cfg.s3Bucket),
 		Key:         aws.String(fileName),
-		Body:        tmpFile,
+		Body:        processedVideoFile,
 		ContentType: aws.String(fileType),
 	})
 	if err != nil {
