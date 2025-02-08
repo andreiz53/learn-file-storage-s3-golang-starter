@@ -103,6 +103,5 @@ func (cfg *apiConfig) handlerUploadThumbnail(w http.ResponseWriter, r *http.Requ
 		respondWithError(w, http.StatusInternalServerError, "Could not update the video", err)
 		return
 	}
-
 	respondWithJSON(w, http.StatusOK, video)
 }
